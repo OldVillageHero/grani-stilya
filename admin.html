@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Грани Стиля — Админ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --bg: #f8eef0; --surface: #ffffff; --ink: #2b1c24; --ink-soft: #6b5561;
+      --accent: #8c2f4b; --accent-ink: #fff6f4; --gold: #a9782f; --line: #e7d9dc;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1b1116; --surface: #251722; --ink: #f3e7ea; --ink-soft: #b79aa5;
+        --accent: #e8879f; --accent-ink: #2b1017; --gold: #e3b569; --line: #3a2530;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--ink);
+      font-family: -apple-system, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+      padding: 20px 20px 60px; max-width: 480px; margin-left: auto; margin-right: auto;
+    }
+    .eyebrow {
+      font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--gold); margin: 24px 0 4px;
+    }
+    h1 {
+      font-family: ui-serif, "New York", "Iowan Old Style", Georgia, serif;
+      font-weight: 500; font-size: 26px; margin: 0 0 20px;
+    }
+    .card {
+      background: var(--surface); border: 1px solid var(--line); border-radius: 14px 14px 14px 3px;
+      padding: 18px; margin-bottom: 20px;
+    }
+    .card h2 { font-size: 15px; margin: 0 0 14px; }
+    label { display: block; font-size: 13px; font-weight: 600; margin: 12px 0 4px; color: var(--ink-soft); }
+    input[type="text"], input[type="date"], select {
+      width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 8px;
+      font-size: 15px; box-sizing: border-box; background: var(--bg); color: var(--ink);
+    }
+    .stage-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 14px; }
+    .stage-row label { margin: 0; font-weight: 400; color: var(--ink); }
+    .stage-row input { width: auto; }
+    button {
+      appearance: none; border: none; border-radius: 10px 10px 10px 2px; padding: 12px 18px;
+      font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 16px;
+    }
+    .primary { background: var(--accent); color: var(--accent-ink); }
+    .result { margin-top: 12px; font-size: 13px; color: var(--ink-soft); }
+    .result strong { color: var(--accent); }
+    .link-box {
+      margin-top: 8px; padding: 10px; background: var(--bg); border-radius: 8px 8px 8px 2px;
+      font-size: 12px; word-break: break-all; border: 1px solid var(--line);
+    }
+    .copy-btn { background: var(--line); color: var(--ink); margin-top: 8px; }
+    .denied { padding: 60px 20px; text-align: center; color: var(--ink-soft); }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script>
+    const API_BASE = "https://script.google.com/macros/s/AKfycbyNqvBNlxtOP9MAPFRFX_aoH3m64r-Ke0AAZphVayPUcW5X6yJ07376P0I-GYnCmof8ng/exec";
+    const ADMIN_KEY = new URLSearchParams(window.location.search).get("admin");
+    const app = document.getElementById("app");
+
+    if (!ADMIN_KEY) {
+      app.innerHTML = '<div class="denied"><p class="eyebrow">Грани Стиля</p><h1>Доступ закрыт</h1><p>Нужна ссылка с ключом администратора.</p></div>';
+    } else {
+      renderApp();
+    }
+
+    function renderApp() {
+      app.innerHTML =
+        '<p class="eyebrow">Грани Стиля</p>' +
+        '<h1>Панель админа</h1>' +
+        '<div class="card">' +
+          '<h2>Создать игру</h2>' +
+          '<form id="gameForm">' +
+            '<label for="date">Дата</label>' +
+            '<input type="date" id="date" required>' +
+            '<label for="place">Место</label>' +
+            '<input type="text" id="place" placeholder="Например: студия на Ленина, 10" required>' +
+            '<label style="margin-bottom:6px;">Этапы в этой игре</label>' +
+            '<div class="stage-row"><input type="checkbox" id="stage2" checked><label for="stage2">Обувь</label></div>' +
+            '<div class="stage-row"><input type="checkbox" id="stage3" checked><label for="stage3">Нижнее бельё</label></div>' +
+            '<div class="stage-row"><input type="checkbox" id="stage4" checked><label for="stage4">Платье</label></div>' +
+            '<div class="stage-row"><input type="checkbox" id="stage5" checked><label for="stage5">Сумки</label></div>' +
+            '<div class="stage-row"><input type="checkbox" id="stage6" checked><label for="stage6">Украшения</label></div>' +
+            '<button type="submit" class="primary">Создать игру</button>' +
+          '</form>' +
+          '<div class="result" id="gameResult"></div>' +
+        '</div>' +
+        '<div class="card">' +
+          '<h2>Добавить участницу</h2>' +
+          '<form id="participantForm">' +
+            '<label for="game">Игра</label>' +
+            '<select id="game" required></select>' +
+            '<label for="name">Имя участницы</label>' +
+            '<input type="text" id="name" placeholder="Например: Анна" required>' +
+            '<button type="submit" class="primary">Создать ссылку</button>' +
+          '</form>' +
+          '<div class="result" id="participantResult"></div>' +
+        '</div>';
+
+      document.getElementById("gameForm").addEventListener("submit", onCreateGame);
+      document.getElementById("participantForm").addEventListener("submit", onAddParticipant);
+      loadGames();
+    }
+
+    function apiUrl(action, params) {
+      const url = new URL(API_BASE);
+      url.searchParams.set("admin", ADMIN_KEY);
+      url.searchParams.set("action", action);
+      Object.keys(params || {}).forEach(function (k) { url.searchParams.set(k, params[k]); });
+      return url.toString();
+    }
+
+    function loadGames() {
+      fetch(apiUrl("list_games"))
+        .then(function (r) { return r.json(); })
+        .then(function (games) {
+          const select = document.getElementById("game");
+          if (!games.length) {
+            select.innerHTML = '<option value="">Сначала создайте игру</option>';
+            return;
+          }
+          select.innerHTML = games.map(function (g) {
+            return '<option value="' + g.id + '">' + g.label + '</option>';
+          }).join("");
+        });
+    }
+
+    function onCreateGame(e) {
+      e.preventDefault();
+      const params = {
+        date: document.getElementById("date").value,
+        place: document.getElementById("place").value,
+        stage2: document.getElementById("stage2").checked ? "1" : "0",
+        stage3: document.getElementById("stage3").checked ? "1" : "0",
+        stage4: document.getElementById("stage4").checked ? "1" : "0",
+        stage5: document.getElementById("stage5").checked ? "1" : "0",
+        stage6: document.getElementById("stage6").checked ? "1" : "0"
+      };
+      fetch(apiUrl("create_game", params))
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          document.getElementById("gameResult").innerHTML = "Игра создана: <strong>" + res.id + "</strong>";
+          loadGames();
+        })
+        .catch(function (err) {
+          document.getElementById("gameResult").textContent = "Ошибка: " + err;
+        });
+    }
+
+    function onAddParticipant(e) {
+      e.preventDefault();
+      const gameId = document.getElementById("game").value;
+      const name = document.getElementById("name").value.trim();
+      if (!gameId || !name) return;
+      fetch(apiUrl("add_participant", { gameId: gameId, name: name }))
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          document.getElementById("participantResult").innerHTML =
+            "Ссылка для <strong>" + res.name + "</strong>:" +
+            '<div class="link-box" id="linkBox">' + res.url + '</div>' +
+            '<button type="button" class="copy-btn" id="copyBtn">Скопировать ссылку</button>';
+          document.getElementById("copyBtn").addEventListener("click", function () {
+            navigator.clipboard.writeText(res.url);
+            this.textContent = "Скопировано";
+          });
+          document.getElementById("name").value = "";
+        })
+        .catch(function (err) {
+          document.getElementById("participantResult").textContent = "Ошибка: " + err;
+        });
+    }
+  </script>
+</body>
+</html>
