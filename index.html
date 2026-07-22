@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Грани Стиля</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --bg: #f8eef0;
+      --bg-glow: #f3dfe1;
+      --surface: #ffffff;
+      --ink: #2b1c24;
+      --ink-soft: #6b5561;
+      --accent: #8c2f4b;
+      --accent-ink: #fff6f4;
+      --gold: #a9782f;
+      --line: #e7d9dc;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1b1116; --bg-glow: #2a1720; --surface: #251722;
+        --ink: #f3e7ea; --ink-soft: #b79aa5; --accent: #e8879f;
+        --accent-ink: #2b1017; --gold: #e3b569; --line: #3a2530;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh;
+      background: radial-gradient(60% 40% at 50% 0%, var(--bg-glow), transparent 70%), var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .page { max-width: 640px; margin: 0 auto; padding: 20px 20px 130px; }
+
+    .stepper { display: flex; gap: 6px; margin-bottom: 24px; }
+    .step { flex: 1; height: 4px; border-radius: 2px; background: var(--line); }
+    .step.done { background: var(--gold); }
+    .step.current { background: var(--accent); }
+
+    .eyebrow {
+      font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--gold); margin: 0 0 10px;
+    }
+    h1 {
+      font-family: ui-serif, "New York", "Iowan Old Style", Georgia, "Times New Roman", serif;
+      font-weight: 500; font-size: clamp(26px, 7vw, 34px); line-height: 1.15;
+      letter-spacing: -0.01em; margin: 0 0 8px; text-wrap: balance;
+    }
+    .sub { margin: 0 0 6px; font-size: 15px; color: var(--ink-soft); line-height: 1.5; max-width: 46ch; }
+
+    .status-row {
+      display: flex; align-items: baseline; justify-content: space-between;
+      margin: 22px 0 18px; padding-bottom: 14px; border-bottom: 1px solid var(--line);
+    }
+    .count { font-variant-numeric: tabular-nums; font-size: 14px; color: var(--ink-soft); }
+    .count strong { color: var(--ink); font-weight: 600; }
+    .count.done strong { color: var(--accent); }
+
+    .field { display: flex; flex-wrap: wrap; gap: 10px; }
+    .chip {
+      position: relative; appearance: none; border: 1px solid var(--line); background: var(--surface);
+      color: var(--ink); font-family: inherit; font-size: 16px; font-weight: 500;
+      padding: 11px 18px; border-radius: 13px 13px 13px 3px; cursor: pointer; line-height: 1.2;
+      transition: background 140ms ease, color 140ms ease, border-color 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+    }
+    .chip:hover { border-color: var(--accent); }
+    .chip:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+    .chip.selected {
+      background: var(--accent); border-color: var(--accent); color: var(--accent-ink);
+      transform: scale(1.035); box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+    }
+    .chip.selected::after {
+      content: ""; position: absolute; top: -4px; right: -4px; width: 9px; height: 9px;
+      border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 2px var(--surface);
+    }
+    .chip:disabled { opacity: 0.35; cursor: not-allowed; }
+    .chip:disabled:hover { border-color: var(--line); }
+    @media (prefers-reduced-motion: reduce) { .chip { transition: none; } .chip.selected { transform: none; } }
+
+    .barwrap {
+      position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: center;
+      padding: 14px 20px calc(14px + env(safe-area-inset-bottom)); pointer-events: none;
+    }
+    .bar {
+      width: 100%; max-width: 600px; display: flex; align-items: center; justify-content: space-between;
+      gap: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+      padding: 10px 10px 10px 18px; box-shadow: 0 8px 28px rgba(0,0,0,0.16); pointer-events: auto;
+    }
+    .bar-label { font-size: 14px; color: var(--ink-soft); white-space: nowrap; }
+    .bar-label strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+    .btn-group { display: flex; gap: 8px; }
+    button.action {
+      appearance: none; border: none; font-family: inherit; font-size: 15px; font-weight: 600;
+      padding: 12px 20px; border-radius: 12px 12px 12px 3px; cursor: pointer; white-space: nowrap;
+      transition: opacity 140ms ease;
+    }
+    button.action:active { opacity: 0.8; }
+    button.action:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+    .btn-next { background: var(--accent); color: var(--accent-ink); }
+    .btn-next:disabled { background: var(--line); color: var(--ink-soft); cursor: not-allowed; }
+    .btn-skip { background: transparent; color: var(--ink-soft); border: 1px solid var(--line) !important; }
+
+    .done-screen { text-align: center; padding-top: 80px; }
+    .done-screen h1 { font-size: clamp(28px, 8vw, 40px); }
+
+    .repeats-list { text-align: left; max-width: 420px; margin: 40px auto 0; }
+    .repeats-title {
+      font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--gold); margin: 0 0 14px;
+    }
+    .repeats-row {
+      display: flex; align-items: baseline; gap: 12px; padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .repeats-row:last-child { border-bottom: none; }
+    .repeats-count { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--accent); min-width: 32px; }
+    .repeats-word { color: var(--ink); font-size: 16px; }
+
+    .spinner-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.15); display: none;
+      align-items: center; justify-content: center;
+    }
+    .spinner-overlay.visible { display: flex; }
+    .spinner {
+      width: 32px; height: 32px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.5);
+      border-top-color: var(--accent); animation: spin 700ms linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-box { padding: 60px 20px; color: var(--accent); }
+    .error-box pre { white-space: pre-wrap; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="page" id="page"></div>
+  <div class="barwrap" id="barwrap" style="display:none;">
+    <div class="bar">
+      <span class="bar-label"><strong id="barCount">0</strong> из <span id="barTarget">0</span></span>
+      <div class="btn-group">
+        <button class="action btn-skip" id="skipBtn" style="display:none;">Пропустить этап</button>
+        <button class="action btn-next" id="nextBtn" disabled>Далее</button>
+      </div>
+    </div>
+  </div>
+  <div class="spinner-overlay" id="spinner"><div class="spinner"></div></div>
+
+  <script>
+    const API_BASE = "https://script.google.com/macros/s/AKfycbyNqvBNlxtOP9MAPFRFX_aoH3m64r-Ke0AAZphVayPUcW5X6yJ07376P0I-GYnCmof8ng/exec";
+    const TOKEN = new URLSearchParams(window.location.search).get("token");
+
+    const ADJECTIVES = [
+      "Умная", "Сильная", "Нежная", "Самодостаточная", "Честная",
+      "Весёлая", "Талантливая", "Самостоятельная", "Чувствительная", "Решительная",
+      "Коммуникабельная", "Энергичная", "Скромная", "Творческая", "Уверенная",
+      "Грациозная", "Амбициозная", "Элегантная", "Загадочная", "Женственная",
+      "Дружелюбная", "Страстная", "Изысканная", "Романтичная", "Практичная",
+      "Активная", "Сексуальная", "Дерзкая", "Изобильная", "Яркая"
+    ];
+
+    const STAGES = [
+      { key: "s1_1", stageNum: 1, stageName: "Начало", question: "Какая я сейчас?", count: 8, canSkip: false },
+      { key: "s1_2", stageNum: 1, stageName: "Начало", question: "Какой меня видят другие?", count: 8, canSkip: false },
+      { key: "s2", stageNum: 2, stageName: "Обувь", question: "Какая я сейчас?", count: 3, canSkip: true },
+      { key: "s3_1", stageNum: 3, stageName: "Нижнее бельё · Бельё", question: "Какая я сейчас?", count: 3, canSkip: true },
+      { key: "s3_2", stageNum: 3, stageName: "Нижнее бельё · Купальники", question: "Какая я сейчас?", count: 3, canSkip: false },
+      { key: "s4", stageNum: 4, stageName: "Платье", question: "Какая я сейчас?", count: 3, canSkip: true },
+      { key: "s5", stageNum: 5, stageName: "Сумки", question: "Какая я сейчас?", count: 3, canSkip: true },
+      { key: "s6", stageNum: 6, stageName: "Украшения", question: "Какая я сейчас?", count: 3, canSkip: true },
+      { key: "s7", stageNum: 7, stageName: "Итог", question: "Какая я сейчас?", count: 8, canSkip: false }
+    ];
+
+    const STAGE_NAMES = ["Начало", "Обувь", "Нижнее бельё", "Платье", "Сумки", "Украшения", "Итог"];
+
+    const pageEl = document.getElementById("page");
+    const barwrap = document.getElementById("barwrap");
+    const barCount = document.getElementById("barCount");
+    const barTarget = document.getElementById("barTarget");
+    const skipBtn = document.getElementById("skipBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const spinner = document.getElementById("spinner");
+
+    let state = null;
+    let selected = [];
+    let currentDef = null;
+
+    function showError(message) {
+      spinner.classList.remove("visible");
+      barwrap.style.display = "none";
+      pageEl.innerHTML = '<div class="error-box"><h2>Ошибка</h2><pre>' + message + '</pre></div>';
+    }
+
+    if (!TOKEN) {
+      showError("Ссылка неполная — нет токена участницы.");
+    } else {
+      loadState();
+    }
+
+    function loadState() {
+      spinner.classList.add("visible");
+      fetch(API_BASE + "?action=state&token=" + encodeURIComponent(TOKEN))
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          spinner.classList.remove("visible");
+          if (data.error) { showError("Ссылка не найдена. Обратитесь к организатору."); return; }
+          state = data;
+          render();
+        })
+        .catch(function (err) { showError(String(err)); });
+    }
+
+    function findStageDef(key) {
+      return STAGES.find(function (s) { return String(s.key) === String(key); });
+    }
+
+    function render() {
+      if (state.currentStage === "done") {
+        renderDone();
+        return;
+      }
+      currentDef = findStageDef(state.currentStage);
+      if (!currentDef) {
+        showError("Этап не найден: " + JSON.stringify(state.currentStage));
+        return;
+      }
+      selected = [];
+      renderStepper();
+      renderStage(currentDef);
+    }
+
+    function renderStepper() {
+      const currentStageNum = currentDef ? currentDef.stageNum : 8;
+      let stepsHtml = '<div class="stepper">';
+      STAGE_NAMES.forEach(function (name, i) {
+        const num = i + 1;
+        let cls = "step";
+        if (num < currentStageNum) cls += " done";
+        else if (num === currentStageNum) cls += " current";
+        stepsHtml += '<div class="' + cls + '"></div>';
+      });
+      stepsHtml += "</div>";
+      pageEl.innerHTML =
+        '<p class="eyebrow">Грани Стиля</p>' +
+        '<h1>' + (currentDef ? currentDef.stageName : "") + '</h1>' +
+        stepsHtml;
+    }
+
+    function renderStage(def) {
+      const wrap = document.createElement("div");
+      wrap.innerHTML =
+        '<p class="sub">' + def.question + '</p>' +
+        '<div class="status-row">' +
+          '<span class="count" id="count"><strong>0</strong> из ' + def.count + ' выбрано</span>' +
+        '</div>' +
+        '<div class="field" id="field"></div>';
+      pageEl.appendChild(wrap);
+
+      const field = document.getElementById("field");
+      ADJECTIVES.forEach(function (word, i) {
+        const btn = document.createElement("button");
+        btn.className = "chip";
+        btn.type = "button";
+        btn.textContent = (i + 1) + ". " + word;
+        btn.dataset.idx = i + 1;
+        btn.addEventListener("click", function () { toggleChip(i + 1, btn, def); });
+        field.appendChild(btn);
+      });
+
+      barTarget.textContent = def.count;
+      barwrap.style.display = "block";
+      skipBtn.style.display = def.canSkip ? "inline-block" : "none";
+      updateStatus(def);
+    }
+
+    function toggleChip(idx, btn, def) {
+      const pos = selected.indexOf(idx);
+      if (pos >= 0) {
+        selected.splice(pos, 1);
+        btn.classList.remove("selected");
+      } else if (selected.length < def.count) {
+        selected.push(idx);
+        btn.classList.add("selected");
+      }
+      updateStatus(def);
+    }
+
+    function updateStatus(def) {
+      const n = selected.length;
+      const atTarget = n === def.count;
+      const countEl = document.getElementById("count");
+      countEl.innerHTML = "<strong>" + n + "</strong> из " + def.count + " выбрано";
+      countEl.classList.toggle("done", atTarget);
+      barCount.textContent = n;
+      document.querySelectorAll(".chip").forEach(function (btn) {
+        const isSelected = btn.classList.contains("selected");
+        btn.disabled = !isSelected && atTarget;
+      });
+      nextBtn.disabled = !atTarget;
+    }
+
+    nextBtn.addEventListener("click", function () {
+      if (!currentDef || selected.length !== currentDef.count) return;
+      submit(currentDef.key, selected.slice(), false);
+    });
+
+    skipBtn.addEventListener("click", function () {
+      if (!currentDef) return;
+      if (selected.length > 0) {
+        const ok = confirm("Вы выбрали " + selected.length + " качеств, но не завершили выбор. Пропустить этап и не сохранить выбор?");
+        if (!ok) return;
+      }
+      submit(currentDef.key, [], true);
+    });
+
+    function submit(key, words, skipped) {
+      spinner.classList.add("visible");
+      const url = API_BASE + "?action=save&token=" + encodeURIComponent(TOKEN) +
+        "&stage=" + encodeURIComponent(key) +
+        "&words=" + encodeURIComponent(words.join(",")) +
+        "&skipped=" + (skipped ? "1" : "0");
+      fetch(url)
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          spinner.classList.remove("visible");
+          if (data.error) { showError("Не удалось сохранить."); return; }
+          state = data;
+          render();
+        })
+        .catch(function (err) {
+          spinner.classList.remove("visible");
+          alert("Не удалось сохранить: " + err);
+        });
+    }
+
+    function renderDone() {
+      barwrap.style.display = "none";
+      const repeatsHtml = (state.repeats || []).map(function (e) {
+        return '<div class="repeats-row"><span class="repeats-count">' + e.count + '×</span><span class="repeats-word">' + e.word + '</span></div>';
+      }).join("");
+      pageEl.innerHTML =
+        '<div class="done-screen">' +
+          '<p class="eyebrow">Грани Стиля</p>' +
+          '<h1>Готово!</h1>' +
+          '<p class="sub" style="margin:0 auto;">Все этапы пройдены. Спасибо, ' + (state.name || "") + '!</p>' +
+        '</div>' +
+        (repeatsHtml ? '<div class="repeats-list"><p class="repeats-title">Твои качества</p>' + repeatsHtml + '</div>' : '');
+    }
+  </script>
+</body>
+</html>
