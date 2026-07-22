@@ -239,10 +239,11 @@
         stepsHtml += '<div class="' + cls + '"></div>';
       });
       stepsHtml += "</div>";
-      pageEl.innerHTML =
-        '<p class="eyebrow">Грани Стиля</p>' +
+            pageEl.innerHTML =
+        '<p class="eyebrow">Грани Стиля · ' + (state.name || "") + '</p>' +
         '<h1>' + (currentDef ? currentDef.stageName : "") + '</h1>' +
         stepsHtml;
+
     }
 
     function renderStage(def) {
